@@ -174,15 +174,20 @@
   <!-- Botón de configuración (engranajes) -->
   <button class="settings-btn" id="settingsBtn">⚙️</button>
   <div class="dropdown" id="dropdown">
-    <h3>⚙️ Ajustes</h3>
-    <div class="dropdown-item">
-      <button onclick="compartirApp()" style="background:none; border:none; padding:0; color:var(--azul); font-weight:600; cursor:pointer;">
-        📤 Compartir aplicación
-      </button>
-    </div>
-    <div class="dropdown-item">Versión: <strong>1.0</strong></div>
-    <div class="dropdown-item">Autor: <strong>JTEJBAE ©</strong></div>
+  <h3>⚙️ Ajustes</h3>
+  <div class="dropdown-item">
+    <button onclick="compartirApp()" style="background:none; border:none; padding:0; color:var(--azul); font-weight:600; cursor:pointer;">
+      📤 Compartir aplicación
+    </button>
   </div>
+  <div class="dropdown-item">
+    <button onclick="borrarTodos()" style="background:none; border:none; padding:0; color:var(--rojo); font-weight:600; cursor:pointer;">
+      🗑️ Borrar todos los medicamentos
+    </button>
+  </div>
+  <div class="dropdown-item">Versión: <strong>1.0</strong></div>
+  <div class="dropdown-item">Autor: <strong>JTEJBAE ©</strong></div>
+</div>
 
   <!-- Contenido principal -->
   <div class="logo-container">
@@ -215,6 +220,27 @@
         dropdown.classList.remove('show');
       }
     });
+
+function borrarTodos() {
+  // Primera confirmación
+  if (!confirm('⚠️ ¿Seguro que quieres borrar TODOS los medicamentos?')) {
+    return;
+  }
+
+  // Segunda confirmación (doble verificación)
+  if (!confirm('🔴 ¡Atención! Esta acción eliminará permanentemente todos tus medicamentos. ¿Confirmar?')) {
+    return;
+  }
+
+  // Borrar del localStorage
+  localStorage.removeItem('caducanoInventario');
+
+  // Mostrar mensaje de éxito
+  alert('✅ Todos los medicamentos han sido borrados con éxito.');
+
+  // Cerrar menú
+  document.getElementById('dropdown').classList.remove('show');
+}
 
     // Función para compartir (Web Share API)
     function compartirApp() {
