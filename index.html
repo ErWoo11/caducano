@@ -1,6 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
+<!-- Metadatos para compartir -->
+<meta property="og:title" content="CaducaNo">
+<meta property="og:description" content="Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios. Tu salud, tu control.">
+<meta property="og:image" content="https://erwoo11.github.io/caducano/logo.png">
+<meta property="og:url" content="https://erwoo11.github.io/caducano/">
+<meta property="og:type" content="website">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CaducaNo">
+<meta name="twitter:description" content="Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios. Tu salud, tu control.">
+<meta name="twitter:image" content="https://erwoo11.github.io/caducano/logo.png">
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CaducaNo - Tu botiquín sin sorpresas</title>
@@ -204,19 +218,26 @@
 
     // Función para compartir (Web Share API)
     function compartirApp() {
-      if (navigator.share) {
-        navigator.share({
-          title: 'CaducaNo',
-          text: 'Tu botiquín sin sorpresas. 100% local, sin nube, sin anuncios.',
-          url: window.location.href
-        }).catch(console.error);
-      } else {
-        // Fallback: copiar URL
-        navigator.clipboard.writeText(window.location.href).then(() => {
-          alert('🔗 Enlace copiado al portapapeles.\nPégalo para compartir.');
-        });
-      }
-    }
+  const url = window.location.href;
+  const title = 'CaducaNo';
+  const text = 'Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios. Tu salud, tu control.';
+  const image = 'logo.png'; // Asume que está en la raíz
+
+  if (navigator.share) {
+    navigator.share({
+      title: title,
+      text: text,
+      url: url,
+      // Nota: La API Web Share no soporta "image" directamente en todos los navegadores
+      // Pero las redes sociales leerán og:image y twitter:image
+    }).catch(console.error);
+  } else {
+    // Fallback: copiar URL + mostrar mensaje
+    navigator.clipboard.writeText(url).then(() => {
+      alert('🔗 Enlace copiado al portapapeles.\nPégalo para compartir.\n\nEl logo se mostrará cuando pegues el enlace en redes sociales o mensajería.');
+    });
+  }
+}
   </script>
 </body>
 </html>
