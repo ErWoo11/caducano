@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Agregar Medicamento | CaducaNo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --azul: #4A90E2;
+      --verde: #7ED321;
+      --rojo: #E74C3C;
+      --blanco: #FFFFFF;
+      --fondo: #F8F9FA;
+      --gris: #333;
+      --gris-claro: #DDD;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--fondo);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--azul);
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    h1 {
+      color: var(--gris);
+      font-weight: 600;
+      font-size: 24px;
+      margin: 0 auto;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 400px;
+      background: var(--blanco);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: left;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--gris);
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gris-claro);
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--azul);
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+
+    /* Alerta si fecha es próxima */
+    .alert-date {
+      border-color: var(--rojo) !important;
+      background-color: rgba(231, 76, 60, 0.1) !important;
+    }
+
+    .btn {
+      background-color: var(--verde);
+      color: var(--blanco);
+      border: none;
+      padding: 14px 30px;
+      border-radius: 30px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(126, 211, 33, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(126, 211, 33, 0.4);
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #999;
+    }
+
+    /* Mensaje de alerta */
+    .alert-message {
+      background: rgba(231, 76, 60, 0.1);
+      border-left: 4px solid var(--rojo);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .success-message {
+      background: rgba(126, 211, 33, 0.1);
+      border-left: 4px solid var(--verde);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="back-btn" onclick="window.history.back()">←</button>
+    <h1>Agregar Medicamento</h1>
+    <span style="width: 20px;"></span> <!-- Para balancear -->
+  </div>
+
+  <div class="form-container">
+    <form id="medForm">
+      <div class="form-group">
+        <label for="nombre">Nombre del medicamento *</label>
+        <input type="text" id="nombre" required placeholder="Ej: Ibuprofeno 400mg">
+      </div>
+
+      <div class="form-group">
+        <label for="fechaCaducidad">Fecha de caducidad *</label>
+        <input type="date" id="fechaCaducidad" required>
+        <div class="alert-message" id="alertDate">⚠️ Este medicamento vence pronto. ¡Revisa!</div>
+      </div>
+
+      <div class="form-group">
+        <label for="cantidad">Cantidad disponible</label>
+        <input type="number" id="cantidad" min="1" value="1" placeholder="Ej: 5">
+      </div>
+
+      <div class="form-group">
+        <label for="categoria">Categoría (opcional)</label>
+        <select id="categoria">
+          <option value="">Selecciona...</option>
+          <option value="analgésico">Analgésico</option>
+          <option value="antibiótico">Antibiótico</option>
+          <option value="antiinflamatorio">Antiinflamatorio</option>
+          <option value="antihistamínico">Antihistamínico</option>
+          <option value="otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="notas">Notas adicionales (opcional)</label>
+        <textarea id="notas" rows="3" placeholder="Ej: Para dolor de cabeza, tomar con comida"></textarea>
+      </div>
+
+      <button type="submit" class="btn">✅ Guardar Medicamento</button>
+    </form>
+
+    <div class="success-message" id="successMsg">🎉 Medicamento guardado correctamente. Te avisaremos cuando esté próximo a vencer.</div>
+  </div>
+
+  <p class="footer">Tu botiquín, siempre actualizado. Sin nube. Sin anuncios.</p>
+
+  <script>
+    document.getElementById('medForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const nombre = document.getElementById('nombre').value.trim();
+      const fechaCaducidad = new Date(document.getElementById('fechaCaducidad').value);
+      const hoy = new Date();
+      const diffTime = fechaCaducidad - hoy;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // Validación básica
+      if (!nombre || !fechaCaducidad) {
+        alert("Por favor, completa los campos obligatorios.");
+        return;
+      }
+
+      // Mostrar alerta si vence en menos de 30 días
+      const alertDiv = document.getElementById('alertDate');
+      const successDiv = document.getElementById('successMsg');
+      const fechaInput = document.getElementById('fechaCaducidad');
+
+      if (diffDays <= 30) {
+        alertDiv.style.display = 'block';
+        fechaInput.classList.add('alert-date');
+      } else {
+        alertDiv.style.display = 'none';
+        fechaInput.classList.remove('alert-date');
+      }
+
+      // Simular guardado (en producción, guardarías en localStorage o IndexedDB)
+      const medicamento = {
+        nombre,
+        fechaCaducidad: fechaCaducidad.toISOString().split('T')[0],
+        cantidad: document.getElementById('cantidad').value || "1",
+        categoria: document.getElementById('categoria').value || "Sin categoría",
+        notas: document.getElementById('notas').value || "",
+        creado: new Date().toISOString()
+      };
+
+      // Guardar en localStorage (para demostración)
+      let inventario = JSON.parse(localStorage.getItem('caducanoInventario')) || [];
+      inventario.push(medicamento);
+      localStorage.setItem('caducanoInventario', JSON.stringify(inventario));
+
+      // Mostrar mensaje de éxito
+      successDiv.style.display = 'block';
+
+      // Resetear formulario después de 3 segundos
+      setTimeout(() => {
+        document.getElementById('medForm').reset();
+        successDiv.style.display = 'none';
+        alertDiv.style.display = 'none';
+        fechaInput.classList.remove('alert-date');
+      }, 3000);
+
+      console.log("Medicamento guardado:", medicamento);
+    });
+
+    // Mostrar alerta al cambiar la fecha
+    document.getElementById('fechaCaducidad').addEventListener('change', function() {
+      const fechaCaducidad = new Date(this.value);
+      const hoy = new Date();
+      const diffTime = fechaCaducidad - hoy;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const alertDiv = document.getElementById('alertDate');
+      const fechaInput = document.getElementById('fechaCaducidad');
+
+      if (diffDays <= 30) {
+        alertDiv.style.display = 'block';
+        fechaInput.classList.add('alert-date');
+      } else {
+        alertDiv.style.display = 'none';
+        fechaInput.classList.remove('alert-date');
+      }
+    });
+  </script>
+</body>
+</html>
