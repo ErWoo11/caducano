@@ -1,21 +1,21 @@
-const CACHE_NAME = 'caducano-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/logo.png',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap'
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open('caducano-cache').then(cache => {
+      return cache.addAll([
+        '/',
+        '/index.html',
+        '/agregar.html',
+        '/medicamentos.html',
+        '/logo.png'
+      ]);
+    })
   );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => {
+      return r || fetch(e.request);
+    })
   );
 });

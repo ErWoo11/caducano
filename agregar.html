@@ -1,6 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- Para PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4A90E2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CaducaNo">
+<link rel="apple-touch-icon" href="logo.png">
+
+<!-- Service Worker (opcional pero recomendado para PWA) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW registrado:', reg);
+      }).catch(err => {
+        console.log('SW no registrado:', err);
+      });
+    });
+  }
+</script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Agregar Medicamento | CaducaNo</title>
@@ -96,10 +121,16 @@
       box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
     }
 
-    /* Alerta si fecha es próxima */
+    /* 🟥 Input: caducado */
     .alert-date {
       border-color: var(--rojo) !important;
-      background-color: rgba(231, 76, 60, 0.1) !important;
+      background-color: rgba(231, 76, 60, 0.15) !important;
+    }
+
+    /* 🟨 Input: vence pronto */
+    .alert-date-proximo {
+      border-color: #FFC107 !important;
+      background-color: rgba(255, 193, 7, 0.15) !important;
     }
 
     .btn {
@@ -127,10 +158,8 @@
       color: #999;
     }
 
-    /* Mensaje de alerta */
-    .alert-message {
-      background: rgba(231, 76, 60, 0.1);
-      border-left: 4px solid var(--rojo);
+    /* Mensaje de alerta dinámico (sin clase fija) */
+    #alertDate {
       padding: 12px;
       margin: 10px 0;
       border-radius: 6px;
@@ -146,6 +175,7 @@
       border-radius: 6px;
       font-size: 14px;
       display: none;
+      color: var(--verde);
     }
   </style>
 </head>
@@ -153,7 +183,7 @@
   <div class="header">
     <button class="back-btn" onclick="window.history.back()">←</button>
     <h1>Agregar Medicamento</h1>
-    <span style="width: 20px;"></span> <!-- Para balancear -->
+    <span style="width: 20px;"></span>
   </div>
 
   <div class="form-container">
@@ -166,7 +196,7 @@
       <div class="form-group">
         <label for="fechaCaducidad">Fecha de caducidad *</label>
         <input type="date" id="fechaCaducidad" required>
-        <div class="alert-message" id="alertDate">⚠️ Este medicamento vence pronto. ¡Revisa!</div>
+        <div id="alertDate"></div>
       </div>
 
       <div class="form-group">
@@ -194,85 +224,141 @@
       <button type="submit" class="btn">✅ Guardar Medicamento</button>
     </form>
 
-    <div class="success-message" id="successMsg">🎉 Medicamento guardado correctamente. Te avisaremos cuando esté próximo a vencer.</div>
+    <div class="success-message" id="successMsg">🎉 Medicamento guardado correctamente.</div>
   </div>
 
   <p class="footer">Tu botiquín, siempre actualizado. Sin nube. Sin anuncios.</p>
 
   <script>
-    document.getElementById('medForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const nombre = document.getElementById('nombre').value.trim();
-      const fechaCaducidad = new Date(document.getElementById('fechaCaducidad').value);
-      const hoy = new Date();
-      const diffTime = fechaCaducidad - hoy;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Cargar datos si se está editando
+    window.addEventListener('DOMContentLoaded', () => {
+      const indexEditar = localStorage.getItem('caducanoEditarIndex');
+      const medTemp = localStorage.getItem('caducanoEditarTemp');
+      if (indexEditar !== null && medTemp) {
+        try {
+          const med = JSON.parse(medTemp);
+          document.getElementById('nombre').value = med.nombre || '';
+          document.getElementById('fechaCaducidad').value = med.fechaCaducidad || '';
+          document.getElementById('cantidad').value = med.cantidad || '1';
+          document.getElementById('categoria').value = med.categoria || '';
+          document.getElementById('notas').value = med.notas || '';
+          document.querySelector('.btn').textContent = '✅ Actualizar medicamento';
+        } catch (e) {
+          console.error('Error al cargar para edición', e);
+          localStorage.removeItem('caducanoEditarIndex');
+          localStorage.removeItem('caducanoEditarTemp');
+        }
+      }
+    });
 
-      // Validación básica
-      if (!nombre || !fechaCaducidad) {
-        alert("Por favor, completa los campos obligatorios.");
+    function actualizarAlerta(fecha, inputEl, alertDiv) {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      inputEl.classList.remove('alert-date', 'alert-date-proximo');
+      alertDiv.style.borderLeft = '';
+      alertDiv.style.backgroundColor = '';
+      alertDiv.style.color = '';
+
+      if (isNaN(fecha.getTime())) {
+        alertDiv.textContent = '⚠️ Fecha inválida.';
+        alertDiv.style.display = 'block';
+        alertDiv.style.borderLeft = '4px solid #E74C3C';
+        alertDiv.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
+        alertDiv.style.color = '#E74C3C';
+        inputEl.classList.add('alert-date');
         return;
       }
 
-      // Mostrar alerta si vence en menos de 30 días
-      const alertDiv = document.getElementById('alertDate');
-      const successDiv = document.getElementById('successMsg');
-      const fechaInput = document.getElementById('fechaCaducidad');
-
-      if (diffDays <= 30) {
+      if (fecha < hoy) {
+        // 🟥 CADUCADO
+        alertDiv.textContent = '⚠️ Este medicamento está caducado.';
         alertDiv.style.display = 'block';
-        fechaInput.classList.add('alert-date');
+        alertDiv.style.borderLeft = '4px solid #E74C3C';
+        alertDiv.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
+        alertDiv.style.color = '#E74C3C';
+        inputEl.classList.add('alert-date');
       } else {
-        alertDiv.style.display = 'none';
-        fechaInput.classList.remove('alert-date');
+        const diffDays = Math.ceil((fecha - hoy) / (1000 * 60 * 60 * 24));
+        if (diffDays <= 30) {
+          // 🟨 PRÓXIMO A VENCER
+          alertDiv.textContent = '⚠️ Este medicamento vence pronto. ¡Revisa!';
+          alertDiv.style.display = 'block';
+          alertDiv.style.borderLeft = '4px solid #FFC107';
+          alertDiv.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
+          alertDiv.style.color = '#856404';
+          inputEl.classList.add('alert-date-proximo');
+        } else {
+          // ✅ VÁLIDO
+          alertDiv.style.display = 'none';
+        }
+      }
+    }
+
+    document.getElementById('fechaCaducidad').addEventListener('change', function() {
+      const fecha = new Date(this.value);
+      actualizarAlerta(fecha, this, document.getElementById('alertDate'));
+    });
+
+    document.getElementById('medForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const nombre = document.getElementById('nombre').value.trim();
+      const fechaStr = document.getElementById('fechaCaducidad').value;
+
+      if (!nombre || !fechaStr) {
+        alert("Completa los campos obligatorios.");
+        return;
       }
 
-      // Simular guardado (en producción, guardarías en localStorage o IndexedDB)
+      const fecha = new Date(fechaStr);
+      if (isNaN(fecha.getTime())) {
+        alert("Fecha inválida.");
+        return;
+      }
+
+      const alertDiv = document.getElementById('alertDate');
+      const inputEl = document.getElementById('fechaCaducidad');
+      actualizarAlerta(fecha, inputEl, alertDiv);
+
       const medicamento = {
         nombre,
-        fechaCaducidad: fechaCaducidad.toISOString().split('T')[0],
+        fechaCaducidad: fechaStr,
         cantidad: document.getElementById('cantidad').value || "1",
         categoria: document.getElementById('categoria').value || "Sin categoría",
         notas: document.getElementById('notas').value || "",
         creado: new Date().toISOString()
       };
 
-      // Guardar en localStorage (para demostración)
       let inventario = JSON.parse(localStorage.getItem('caducanoInventario')) || [];
-      inventario.push(medicamento);
+      const indexEditar = localStorage.getItem('caducanoEditarIndex');
+
+      if (indexEditar !== null && !isNaN(indexEditar)) {
+        const idx = parseInt(indexEditar);
+        if (idx >= 0 && idx < inventario.length) {
+          inventario[idx] = medicamento;
+        } else {
+          inventario.push(medicamento);
+        }
+        localStorage.removeItem('caducanoEditarIndex');
+        localStorage.removeItem('caducanoEditarTemp');
+      } else {
+        inventario.push(medicamento);
+      }
+
       localStorage.setItem('caducanoInventario', JSON.stringify(inventario));
+      document.getElementById('successMsg').style.display = 'block';
 
-      // Mostrar mensaje de éxito
-      successDiv.style.display = 'block';
-
-      // Resetear formulario después de 3 segundos
       setTimeout(() => {
         document.getElementById('medForm').reset();
-        successDiv.style.display = 'none';
+        document.getElementById('successMsg').style.display = 'none';
         alertDiv.style.display = 'none';
-        fechaInput.classList.remove('alert-date');
+        inputEl.classList.remove('alert-date', 'alert-date-proximo');
+        document.querySelector('.btn').textContent = '✅ Guardar Medicamento';
+        if (indexEditar !== null) {
+          window.location.href = 'medicamentos.html';
+        }
       }, 3000);
-
-      console.log("Medicamento guardado:", medicamento);
-    });
-
-    // Mostrar alerta al cambiar la fecha
-    document.getElementById('fechaCaducidad').addEventListener('change', function() {
-      const fechaCaducidad = new Date(this.value);
-      const hoy = new Date();
-      const diffTime = fechaCaducidad - hoy;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      const alertDiv = document.getElementById('alertDate');
-      const fechaInput = document.getElementById('fechaCaducidad');
-
-      if (diffDays <= 30) {
-        alertDiv.style.display = 'block';
-        fechaInput.classList.add('alert-date');
-      } else {
-        alertDiv.style.display = 'none';
-        fechaInput.classList.remove('alert-date');
-      }
     });
   </script>
 </body>

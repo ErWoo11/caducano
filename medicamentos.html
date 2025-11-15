@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- Para PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4A90E2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CaducaNo">
+<link rel="apple-touch-icon" href="logo.png">
+
+<!-- Service Worker (opcional pero recomendado para PWA) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW registrado:', reg);
+      }).catch(err => {
+        console.log('SW no registrado:', err);
+      });
+    });
+  }
+</script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mis Medicamentos | CaducaNo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --azul: #4A90E2;
+      --verde: #7ED321;
+      --rojo: #E74C3C;
+      --blanco: #FFFFFF;
+      --fondo: #F8F9FA;
+      --gris: #333;
+    }
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      background-color: var(--fondo);
+      padding: 20px;
+      color: var(--gris);
+    }
+    .container {
+      max-width: 600px; margin: 0 auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-weight: 600;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .summary {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+    .search-box {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--azul);
+      font-size: 16px;
+      cursor: pointer;
+      margin-bottom: 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .med-item {
+      background: var(--blanco);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      text-align: left;
+      border-left: 4px solid #ccc;
+    }
+    .med-item.verde { border-left-color: #4CAF50; background-color: #e8f5e9; }
+    .med-item.amarillo { border-left-color: #FFC107; background-color: #fff8e1; }
+    .med-item.rojo { border-left-color: #F44336; background-color: #ffebee; }
+
+    .med-name {
+      font-weight: 600;
+      font-size: 18px;
+      margin-bottom: 6px;
+    }
+    .med-expiry {
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+    .med-field {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .btn-edit, .btn-delete {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-edit { background-color: var(--azul); color: white; }
+    .btn-delete { background-color: var(--rojo); color: white; }
+    .empty {
+      text-align: center;
+      padding: 30px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <button class="back-btn" onclick="location.href='index.html'">← Volver</button>
+      <h1>📋 Mis Medicamentos</h1>
+      <div class="summary" id="total-count">Cargando...</div>
+      <input type="text" id="search-input" class="search-box" placeholder="Buscar en nombre o notas...">
+    </header>
+    <ul id="lista" style="list-style: none; padding: 0;"></ul>
+  </div>
+
+  <script>
+  let inventarioCompleto = JSON.parse(localStorage.getItem('caducanoInventario')) || [];
+  const lista = document.getElementById('lista');
+  const totalCount = document.getElementById('total-count');
+  const searchInput = document.getElementById('search-input');
+
+  totalCount.textContent = `Tienes ${inventarioCompleto.length} medicamento${inventarioCompleto.length !== 1 ? 's' : ''}.`;
+
+  if (inventarioCompleto.length === 0) {
+    lista.innerHTML = '<li class="empty">No hay medicamentos registrados.</li>';
+  } else {
+    renderLista(inventarioCompleto);
+  }
+
+  function renderLista(medicamentosFiltrados) {
+    lista.innerHTML = '';
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // Ordenar por fecha de caducidad
+    const sorted = [...medicamentosFiltrados].sort((a, b) => {
+      return new Date(a.fechaCaducidad) - new Date(b.fechaCaducidad);
+    });
+
+    if (sorted.length === 0) {
+      lista.innerHTML = '<li class="empty">No se encontraron coincidencias.</li>';
+      return;
+    }
+
+    sorted.forEach(med => {
+      // ✅ Obtener el índice REAL en el inventario original
+      const realIndex = inventarioCompleto.findIndex(m => 
+        m.nombre === med.nombre &&
+        m.fechaCaducidad === med.fechaCaducidad &&
+        m.creado === med.creado
+      );
+
+      // Si no se encuentra (no debería pasar), saltar
+      if (realIndex === -1) return;
+
+      const fechaCad = new Date(med.fechaCaducidad);
+      fechaCad.setHours(0, 0, 0, 0);
+
+      let estado = 'verde';
+      if (fechaCad < hoy) {
+        estado = 'rojo';
+      } else {
+        const diffDays = Math.ceil((fechaCad - hoy) / (1000 * 60 * 60 * 24));
+        if (diffDays <= 30) estado = 'amarillo';
+      }
+
+      const fechaFormateada = fechaCad.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+
+      const estadoTexto = estado === 'rojo' ? '❌ VENCIDO' : 
+                         estado === 'amarillo' ? '⚠️ Próximo a vencer' : '✅ Vigente';
+
+      const item = document.createElement('li');
+      item.className = `med-item ${estado}`;
+      item.innerHTML = `
+        <div class="med-name">${med.nombre}</div>
+        <div class="med-expiry">📅 Caduca: ${fechaFormateada} <strong>${estadoTexto}</strong></div>
+        ${med.cantidad && med.cantidad !== "1" ? `<div class="med-field">💊 Cantidad: ${med.cantidad}</div>` : ''}
+        ${med.categoria && med.categoria !== "Sin categoría" ? `<div class="med-field">🏷️ Categoría: ${med.categoria}</div>` : ''}
+        ${med.notas ? `<div class="med-field">💡 Notas: ${med.notas}</div>` : ''}
+        <div class="actions">
+          <button class="btn-edit" onclick="editar(${realIndex})">✏️ Editar</button>
+          <button class="btn-delete" onclick="eliminar(${realIndex})">🗑️ Eliminar</button>
+        </div>
+      `;
+      lista.appendChild(item);
+    });
+  }
+
+  searchInput.addEventListener('input', function() {
+    const query = this.value.trim().toLowerCase();
+    if (!query) {
+      renderLista(inventarioCompleto);
+      totalCount.textContent = `Tienes ${inventarioCompleto.length} medicamento${inventarioCompleto.length !== 1 ? 's' : ''}.`;
+      return;
+    }
+
+    const filtrados = inventarioCompleto.filter(med => {
+      const nombre = (med.nombre || '').toLowerCase();
+      const notas = (med.notas || '').toLowerCase();
+      return nombre.includes(query) || notas.includes(query);
+    });
+
+    renderLista(filtrados);
+    totalCount.textContent = `Se encontraron ${filtrados.length} resultado${filtrados.length !== 1 ? 's' : ''}.`;
+  });
+
+  function editar(realIndex) {
+    localStorage.setItem('caducanoEditarIndex', realIndex);
+    localStorage.setItem('caducanoEditarTemp', JSON.stringify(inventarioCompleto[realIndex]));
+    location.href = 'agregar.html';
+  }
+
+  function eliminar(realIndex) {
+    if (confirm('¿Seguro que deseas eliminar este medicamento?')) {
+      inventarioCompleto.splice(realIndex, 1);
+      localStorage.setItem('caducanoInventario', JSON.stringify(inventarioCompleto));
+      location.reload();
+    }
+  }
+</script>
+</body>
+</html>
