@@ -221,20 +221,18 @@
   const url = window.location.href;
   const title = 'CaducaNo';
   const text = 'Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios. Tu salud, tu control.';
-  const image = 'logo.png'; // Asume que está en la raíz
+  const image = 'https://erwoo11.github.io/caducano/logo.png';
 
   if (navigator.share) {
     navigator.share({
       title: title,
       text: text,
-      url: url,
-      // Nota: La API Web Share no soporta "image" directamente en todos los navegadores
-      // Pero las redes sociales leerán og:image y twitter:image
+      url: url
     }).catch(console.error);
   } else {
-    // Fallback: copiar URL + mostrar mensaje
+    // Fallback: copiar URL y mostrar mensaje informativo
     navigator.clipboard.writeText(url).then(() => {
-      alert('🔗 Enlace copiado al portapapeles.\nPégalo para compartir.\n\nEl logo se mostrará cuando pegues el enlace en redes sociales o mensajería.');
+      alert('🔗 Enlace copiado al portapapeles.\n\nPégalo en WhatsApp, Telegram, Facebook o Twitter.\n\n✅ Al pegarlo, verás el logo de CaducaNo junto con el título y descripción.');
     });
   }
 }
