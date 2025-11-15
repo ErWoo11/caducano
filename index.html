@@ -1,31 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-
-<!-- Favicon -->
-<link rel="icon" type="image/png" href="logo.png">
-
-<!-- Para PWA -->
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#4A90E2">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="CaducaNo">
-<link rel="apple-touch-icon" href="logo.png">
-
-<!-- Service Worker (opcional pero recomendado para PWA) -->
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').then(reg => {
-        console.log('SW registrado:', reg);
-      }).catch(err => {
-        console.log('SW no registrado:', err);
-      });
-    });
-  }
-</script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CaducaNo - Tu botiquín sin sorpresas</title>
@@ -56,6 +31,68 @@
       min-height: 100vh;
       padding: 20px;
       text-align: center;
+      position: relative;
+    }
+
+    /* Botón de ajustes */
+    .settings-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--azul);
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      z-index: 100;
+    }
+
+    .settings-btn:hover {
+      background-color: rgba(74, 144, 226, 0.1);
+    }
+
+    /* Menú desplegable */
+    .dropdown {
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: var(--blanco);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 16px;
+      width: 280px;
+      display: none;
+      z-index: 99;
+      text-align: left;
+    }
+
+    .dropdown.show {
+      display: block;
+    }
+
+    .dropdown h3 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      color: var(--gris);
+    }
+
+    .dropdown-item {
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+      font-size: 15px;
+      color: var(--gris);
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item a {
+      color: var(--azul);
+      text-decoration: none;
+      font-weight: 600;
     }
 
     .logo-container {
@@ -120,6 +157,20 @@
   </style>
 </head>
 <body>
+  <!-- Botón de configuración (engranajes) -->
+  <button class="settings-btn" id="settingsBtn">⚙️</button>
+  <div class="dropdown" id="dropdown">
+    <h3>⚙️ Ajustes</h3>
+    <div class="dropdown-item">
+      <button onclick="compartirApp()" style="background:none; border:none; padding:0; color:var(--azul); font-weight:600; cursor:pointer;">
+        📤 Compartir aplicación
+      </button>
+    </div>
+    <div class="dropdown-item">Versión: <strong>1.0</strong></div>
+    <div class="dropdown-item">Autor: <strong>JTEJBAE ©</strong></div>
+  </div>
+
+  <!-- Contenido principal -->
   <div class="logo-container">
     <img src="logo.png" alt="CaducaNo" width="192" height="192">
   </div>
@@ -135,5 +186,37 @@
   </button>
 
   <p class="footer">100% local — Sin nube. Sin anuncios. Tu salud, tu control.</p>
+
+  <script>
+    // Alternar menú desplegable
+    document.getElementById('settingsBtn').addEventListener('click', function() {
+      document.getElementById('dropdown').classList.toggle('show');
+    });
+
+    // Cerrar menú al hacer clic fuera
+    document.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('dropdown');
+      const btn = document.getElementById('settingsBtn');
+      if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+        dropdown.classList.remove('show');
+      }
+    });
+
+    // Función para compartir (Web Share API)
+    function compartirApp() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'CaducaNo',
+          text: 'Tu botiquín sin sorpresas. 100% local, sin nube, sin anuncios.',
+          url: window.location.href
+        }).catch(console.error);
+      } else {
+        // Fallback: copiar URL
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          alert('🔗 Enlace copiado al portapapeles.\nPégalo para compartir.');
+        });
+      }
+    }
+  </script>
 </body>
 </html>
