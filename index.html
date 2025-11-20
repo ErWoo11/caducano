@@ -234,18 +234,18 @@
     }
 
     function compartirApp() {
-      const url = window.location.href;
-      const title = 'CaducaNo';
-      const text = 'Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios. Tu salud, tu control.';
-      
-      if (navigator.share) {
-        navigator.share({ title, text, url }).catch(console.error);
-      } else {
-        navigator.clipboard.writeText(url).then(() => {
-          alert('🔗 Enlace copiado.\nPégalo en WhatsApp/Telegram para ver el logo.');
-        });
-      }
-    }
+  const url = 'https://erwoo11.github.io/caducano/'; // 👈 URL fija y pública
+  const title = 'CaducaNo';
+  const text = 'Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios.';
+
+  if (navigator.share) {
+    navigator.share({ title, text, url }).catch(console.error);
+  } else {
+    navigator.clipboard.writeText(url).then(() => {
+      alert('🔗 Enlace copiado. Pégalo en WhatsApp para ver el logo.');
+    });
+  }
+}
 
     // Registrar service worker
     if ('serviceWorker' in navigator) {
