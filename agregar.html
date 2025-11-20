@@ -1,37 +1,185 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- Metadatos para compartir -->
-  <meta property="og:title" content="CaducaNo">
-  <meta property="og:description" content="Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios. Tu salud, tu control.">
-  <meta property="og:image" content="https://erwoo11.github.io/caducano/logo-og.png">
-  <meta property="og:url" content="https://erwoo11.github.io/caducano/">
-  <meta property="og:type" content="website">
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="CaducaNo">
-  <meta name="twitter:description" content="Tu botiquín sin sorpresas. 100% local — Sin nube. Sin anuncios. Tu salud, tu control.">
-  <meta name="twitter:image" content="https://erwoo11.github.io/caducano/logo.png">
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<!-- Para PWA -->
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4A90E2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="CaducaNo">
+<link rel="apple-touch-icon" href="logo.png">
+
+<!-- Service Worker (opcional pero recomendado para PWA) -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW registrado:', reg);
+      }).catch(err => {
+        console.log('SW no registrado:', err);
+      });
+    });
+  }
+</script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CaducaNo - Tu botiquín sin sorpresas</title>
+  <title>Agregar Medicamento | CaducaNo</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --azul: #4A90E2;
+      --verde: #7ED321;
+      --rojo: #E74C3C;
+      --blanco: #FFFFFF;
+      --fondo: #F8F9FA;
+      --gris: #333;
+      --gris-claro: #DDD;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="logo.png">
-  <!-- Manifest para PWA -->
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" content="#4A90E2">
-  <!-- iOS -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="CaducaNo">
-  <link rel="apple-touch-icon" href="logo.png">
+    body {
+      background-color: var(--fondo);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .header {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--azul);
+      cursor: pointer;
+      padding: 8px;
+    }
+
+    h1 {
+      color: var(--gris);
+      font-weight: 600;
+      font-size: 24px;
+      margin: 0 auto;
+    }
+
+    .form-container {
+      width: 100%;
+      max-width: 400px;
+      background: var(--blanco);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      text-align: left;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: var(--gris);
+      font-weight: 500;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--gris-claro);
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--azul);
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+
+    /* 🟥 Input: caducado */
+    .alert-date {
+      border-color: var(--rojo) !important;
+      background-color: rgba(231, 76, 60, 0.15) !important;
+    }
+
+    /* 🟨 Input: vence pronto */
+    .alert-date-proximo {
+      border-color: #FFC107 !important;
+      background-color: rgba(255, 193, 7, 0.15) !important;
+    }
+
+    .btn {
+      background-color: var(--verde);
+      color: var(--blanco);
+      border: none;
+      padding: 14px 30px;
+      border-radius: 30px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 4px 10px rgba(126, 211, 33, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(126, 211, 33, 0.4);
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #999;
+    }
+
+    /* Mensaje de alerta dinámico (sin clase fija) */
+    #alertDate {
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .success-message {
+      background: rgba(126, 211, 33, 0.1);
+      border-left: 4px solid var(--verde);
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+      color: var(--verde);
+    }
+  </style>
 </head>
 <body>
-  <!-- (Mismo contenido visual que ya tenías) -->
   <div class="header">
     <button class="back-btn" onclick="window.history.back()">←</button>
     <h1>Agregar Medicamento</h1>
@@ -81,129 +229,8 @@
 
   <p class="footer">Tu botiquín, siempre actualizado. Sin nube. Sin anuncios.</p>
 
-  <style>
-    :root {
-      --azul: #4A90E2;
-      --verde: #7ED321;
-      --rojo: #E74C3C;
-      --blanco: #FFFFFF;
-      --fondo: #F8F9FA;
-      --gris: #333;
-      --gris-claro: #DDD;
-    }
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
-    body {
-      background-color: var(--fondo);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
-      text-align: center;
-    }
-    .header {
-      width: 100%;
-      max-width: 400px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .back-btn {
-      background: none;
-      border: none;
-      font-size: 20px;
-      color: var(--azul);
-      cursor: pointer;
-      padding: 8px;
-    }
-    h1 {
-      color: var(--gris);
-      font-weight: 600;
-      font-size: 24px;
-      margin: 0 auto;
-    }
-    .form-container {
-      width: 100%;
-      max-width: 400px;
-      background: var(--blanco);
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      text-align: left;
-    }
-    .form-group { margin-bottom: 20px; }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      color: var(--gris);
-      font-weight: 500;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid var(--gris-claro);
-      border-radius: 8px;
-      font-size: 16px;
-      transition: border 0.2s;
-    }
-    input:focus, select:focus, textarea:focus {
-      outline: none;
-      border-color: var(--azul);
-      box-shadow: 0 0 0 2px rgba(74,144,226,0.2);
-    }
-    .alert-date {
-      border-color: var(--rojo) !important;
-      background-color: rgba(231,76,60,0.15) !important;
-    }
-    .alert-date-proximo {
-      border-color: #FFC107 !important;
-      background-color: rgba(255,193,7,0.15) !important;
-    }
-    .btn {
-      background-color: var(--verde);
-      color: var(--blanco);
-      border: none;
-      padding: 14px 30px;
-      border-radius: 30px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      box-shadow: 0 4px 10px rgba(126,211,33,0.3);
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 14px rgba(126,211,33,0.4);
-    }
-    .footer {
-      margin-top: 20px;
-      font-size: 13px;
-      color: #999;
-    }
-    #alertDate {
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 6px;
-      font-size: 14px;
-      display: none;
-    }
-    .success-message {
-      background: rgba(126,211,33,0.1);
-      border-left: 4px solid var(--verde);
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 6px;
-      font-size: 14px;
-      display: none;
-      color: var(--verde);
-    }
-  </style>
-
   <script>
+    // Cargar datos si se está editando
     window.addEventListener('DOMContentLoaded', () => {
       const indexEditar = localStorage.getItem('caducanoEditarIndex');
       const medTemp = localStorage.getItem('caducanoEditarTemp');
@@ -217,6 +244,7 @@
           document.getElementById('notas').value = med.notas || '';
           document.querySelector('.btn').textContent = '✅ Actualizar medicamento';
         } catch (e) {
+          console.error('Error al cargar para edición', e);
           localStorage.removeItem('caducanoEditarIndex');
           localStorage.removeItem('caducanoEditarTemp');
         }
@@ -225,34 +253,43 @@
 
     function actualizarAlerta(fecha, inputEl, alertDiv) {
       const hoy = new Date();
-      hoy.setHours(0,0,0,0);
-      inputEl.classList.remove('alert-date','alert-date-proximo');
-      alertDiv.style.cssText = 'border-left: 4px solid; padding:12px; margin:10px 0; border-radius:6px; font-size:14px; display:block;';
+      hoy.setHours(0, 0, 0, 0);
 
-      if (isNaN(fecha)) {
-        alertDiv.innerHTML = '⚠️ Fecha inválida.';
+      inputEl.classList.remove('alert-date', 'alert-date-proximo');
+      alertDiv.style.borderLeft = '';
+      alertDiv.style.backgroundColor = '';
+      alertDiv.style.color = '';
+
+      if (isNaN(fecha.getTime())) {
+        alertDiv.textContent = '⚠️ Fecha inválida.';
+        alertDiv.style.display = 'block';
         alertDiv.style.borderLeft = '4px solid #E74C3C';
-        alertDiv.style.background = 'rgba(231,76,60,0.1)';
+        alertDiv.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
         alertDiv.style.color = '#E74C3C';
         inputEl.classList.add('alert-date');
         return;
       }
 
       if (fecha < hoy) {
-        alertDiv.innerHTML = '⚠️ Este medicamento está caducado.';
+        // 🟥 CADUCADO
+        alertDiv.textContent = '⚠️ Este medicamento está caducado.';
+        alertDiv.style.display = 'block';
         alertDiv.style.borderLeft = '4px solid #E74C3C';
-        alertDiv.style.background = 'rgba(231,76,60,0.1)';
+        alertDiv.style.backgroundColor = 'rgba(231, 76, 60, 0.1)';
         alertDiv.style.color = '#E74C3C';
         inputEl.classList.add('alert-date');
       } else {
-        const diffDays = Math.ceil((fecha - hoy) / 864e5);
+        const diffDays = Math.ceil((fecha - hoy) / (1000 * 60 * 60 * 24));
         if (diffDays <= 30) {
-          alertDiv.innerHTML = '⚠️ Este medicamento vence pronto. ¡Revisa!';
+          // 🟨 PRÓXIMO A VENCER
+          alertDiv.textContent = '⚠️ Este medicamento vence pronto. ¡Revisa!';
+          alertDiv.style.display = 'block';
           alertDiv.style.borderLeft = '4px solid #FFC107';
-          alertDiv.style.background = 'rgba(255,193,7,0.1)';
+          alertDiv.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
           alertDiv.style.color = '#856404';
           inputEl.classList.add('alert-date-proximo');
         } else {
+          // ✅ VÁLIDO
           alertDiv.style.display = 'none';
         }
       }
@@ -265,12 +302,20 @@
 
     document.getElementById('medForm').addEventListener('submit', function(e) {
       e.preventDefault();
+
       const nombre = document.getElementById('nombre').value.trim();
       const fechaStr = document.getElementById('fechaCaducidad').value;
-      if (!nombre || !fechaStr) return alert("Completa los campos obligatorios.");
-      
+
+      if (!nombre || !fechaStr) {
+        alert("Completa los campos obligatorios.");
+        return;
+      }
+
       const fecha = new Date(fechaStr);
-      if (isNaN(fecha)) return alert("Fecha inválida.");
+      if (isNaN(fecha.getTime())) {
+        alert("Fecha inválida.");
+        return;
+      }
 
       const alertDiv = document.getElementById('alertDate');
       const inputEl = document.getElementById('fechaCaducidad');
@@ -290,8 +335,11 @@
 
       if (indexEditar !== null && !isNaN(indexEditar)) {
         const idx = parseInt(indexEditar);
-        if (idx >= 0 && idx < inventario.length) inventario[idx] = medicamento;
-        else inventario.push(medicamento);
+        if (idx >= 0 && idx < inventario.length) {
+          inventario[idx] = medicamento;
+        } else {
+          inventario.push(medicamento);
+        }
         localStorage.removeItem('caducanoEditarIndex');
         localStorage.removeItem('caducanoEditarTemp');
       } else {
@@ -305,18 +353,13 @@
         document.getElementById('medForm').reset();
         document.getElementById('successMsg').style.display = 'none';
         alertDiv.style.display = 'none';
-        inputEl.classList.remove('alert-date','alert-date-proximo');
+        inputEl.classList.remove('alert-date', 'alert-date-proximo');
         document.querySelector('.btn').textContent = '✅ Guardar Medicamento';
-        if (indexEditar !== null) window.location.href = 'medicamentos.html';
+        if (indexEditar !== null) {
+          window.location.href = 'medicamentos.html';
+        }
       }, 3000);
     });
-
-    // Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(console.error);
-      });
-    }
   </script>
 </body>
 </html>
